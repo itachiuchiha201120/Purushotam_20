@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - JAI MATA DI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .sidebar h2 small {
+            font-size: 10px;
+            display: block;
+            opacity: 0.7;
+        }
+
+        .nav-link {
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 20px;
+        }
+
+        /* Header */
+        .top-bar {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #d32f2f;
+        }
+
+        /* Tables */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .card h3 {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #d32f2f;
+            display: inline-block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-accepted { background: #cce5ff; color: #004085; }
+        .status-shipped { background: #d4edda; color: #155724; }
+        .status-delivered { background: #d1ecf1; color: #0c5460; }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 2px;
+        }
+
+        .btn-sm { padding: 4px 8px; }
+        .btn-primary { background: #d32f2f; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn-info { background: #17a2b8; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-content input, .modal-content select, .modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            z-index: 2000;
+            display: none;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .product-img-preview {
+            width: 50px;
+            height: 50px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 70px; }
+            .sidebar span:not(.nav-icon) { display: none; }
+            .main-content { margin-left: 70px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toast" id="toastMsg">Message</div>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <h2>JAI MATA DI<br><small>Admin Panel</small></h2>
+    <div class="nav-link active" onclick="showPage('dashboard')">
+        <span class="nav-icon">📊</span> <span>Dashboard</span>
+    </div>
+    <div class="nav-link" onclick="showPage('orders')">
+        <span class="nav-icon">📦</span> <span>Orders</span>
+    </div>
+    <div class="nav-link" onclick="showPage('products')">
+        <span class="nav-icon">🛍️</span> <span>Products</span>
+    </div>
+    <div class="nav-link" onclick="showPage('customers')">
+        <span class="nav-icon">👥</span> <span>Customers</span>
+    </div>
+    <div class="nav-link" onclick="showPage('banners')">
+        <span class="nav-icon">🎨</span> <span>Banners</span>
+    </div>
+    <div class="nav-link" onclick="showPage('settings')">
+        <span class="nav-icon">⚙️</span> <span>Settings</span>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="top-bar">
+        <h2 id="pageTitle">Dashboard</h2>
+        <div>👋 Admin | <span id="adminName">JAI MATA DI Store</span></div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboardPage" class="page active">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Orders</h3>
+                <div class="number" id="totalOrders">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Pending Orders</h3>
+                <div class="number" id="pendingOrders">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Customers</h3>
+                <div class="number" id="totalCustomers">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Products</h3>
+                <div class="number" id="totalProducts">0</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Recent Orders</h3>
+            <table id="recentOrdersTable">
+                <thead>
+                    <tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Status</th><th>Action</th></tr>
+                </thead>
+                <tbody id="recentOrdersList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Orders Page -->
+    <div id="ordersPage" class="page">
+        <div class="card">
+            <h3>All Orders</h3>
+            <table>
+                <thead>
+                    <tr><th>Order ID</th><th>Customer Name</th><th>Mobile</th><th>Items</th><th>Total</th><th>Status</th><th>Action</th></tr>
+                </thead>
+                <tbody id="ordersList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Products Page -->
+    <div id="productsPage" class="page">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Products</h3>
+                <button class="btn btn-primary" onclick="openProductModal()">+ Add Product</button>
+            </div>
+            <table>
+                <thead>
+                    <tr><th>Icon</th><th>Name</th><th>Category</th><th>Price</th><th>Action</th></tr>
+                </thead>
+                <tbody id="productsList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Customers Page -->
+    <div id="customersPage" class="page">
+        <div class="card">
+            <h3>Registered Customers</h3>
+            <table>
+                <thead>
+                    <tr><th>Name</th><th>Mobile</th><th>Email</th><th>Orders</th><th>Joined</th></tr>
+                </thead>
+                <tbody id="customersList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Banners Page -->
+    <div id="bannersPage" class="page">
+        <div class="card">
+            <h3>Offer Banners</h3>
+            <div id="bannersList"></div>
+            <button class="btn btn-primary" onclick="editBanner()">Edit Banner Text</button>
+        </div>
+    </div>
+
+    <!-- Settings Page -->
+    <div id="settingsPage" class="page">
+        <div class="card">
+            <h3>Admin Settings</h3>
+            <div class="form-group">
+                <label>Store Name</label>
+                <input type="text" id="storeName" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Contact Number 1</label>
+                <input type="text" id="contactNum1" value="7870695618">
+            </div>
+            <div class="form-group">
+                <label>Contact Number 2</label>
+                <input type="text" id="contactNum2" value="9905735203">
+            </div>
+            <div class="form-group">
+                <label>WhatsApp Number 1</label>
+                <input type="text" id="whatsappNum1" value="7870695618">
+            </div>
+            <div class="form-group">
+                <label>WhatsApp Number 2</label>
+                <input type="text" id="whatsappNum2" value="9905735203">
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+        </div>
+    </div>
+</div>
+
+<!-- Product Modal -->
+<div id="productModal" class="modal">
+    <div class="modal-content">
+        <h3 id="productModalTitle">Add Product</h3>
+        <input type="hidden" id="productId">
+        <div class="form-group">
+            <label>Product Name</label>
+            <input type="text" id="productName" placeholder="e.g., Notebook">
+        </div>
+        <div class="form-group">
+            <label>Category</label>
+            <select id="productCategory">
+                <option value="stationery">Stationery</option>
+                <option value="gift">Gift</option>
+                <option value="sports">Sports</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Price (₹)</label>
+            <input type="text" id="productPrice" placeholder="e.g., 49">
+        </div>
+        <div class="form-group">
+            <label>Icon (Emoji)</label>
+            <input type="text" id="productIcon" placeholder="e.g., 📓">
+        </div>
+        <button class="btn btn-primary" onclick="saveProduct()">Save</button>
+        <button class="btn" style="background:#ccc;" onclick="closeProductModal()">Cancel</button>
+    </div>
+</div>
+
+<!-- Banner Edit Modal -->
+<div id="bannerModal" class="modal">
+    <div class="modal-content">
+        <h3>Edit Banner</h3>
+        <div class="form-group">
+            <label>Banner Text</label>
+            <textarea id="bannerText" rows="3" style="width:100%"></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="saveBanner()">Save</button>
+        <button class="btn" style="background:#ccc;" onclick="closeBannerModal()">Cancel</button>
+    </div>
+</div>
+
+<script>
+    // ============ DATA (Local Storage) ============
+    let products = [
+        { id: 1, name: "Notebook", price: "₹49", icon: "📓", category: "stationery" },
+        { id: 2, name: "Pen Set", price: "₹99", icon: "✒️", category: "stationery" },
+        { id: 3, name: "Marker", price: "₹29", icon: "🖍️", category: "stationery" },
+        { id: 4, name: "Sketch Pens", price: "₹199", icon: "🎨", category: "stationery" },
+        { id: 5, name: "Geometry Box", price: "₹89", icon: "📐", category: "stationery" },
+        { id: 6, name: "Gift Wrap", price: "₹49", icon: "🎁", category: "gift" },
+        { id: 7, name: "Teddy Bear", price: "₹299", icon: "🧸", category: "gift" },
+        { id: 8, name: "Birthday Card", price: "₹19", icon: "💝", category: "gift" },
+        { id: 9, name: "Cricket Bat", price: "₹499", icon: "🏏", category: "sports" },
+        { id: 10, name: "Football", price: "₹399", icon: "⚽", category: "sports" },
+        { id: 11, name: "Badminton Racket", price: "₹299", icon: "🏸", category: "sports" },
+        { id: 12, name: "Skipping Rope", price: "₹99", icon: "🪢", category: "sports" }
+    ];
+
+    let orders = [
+        { id: "ORD001", customerName: "Purushotam Kumar", mobile: "9296768190", email: "purushotamkumar0896@gmail.com", items: [{name: "Notebook", qty: 2, price: 49}], total: 98, status: "pending", date: "2024-01-15" },
+        { id: "ORD002", customerName: "Rahul Sharma", mobile: "9876543210", email: "rahul@gmail.com", items: [{name: "Cricket Bat", qty: 1, price: 499}], total: 499, status: "accepted", date: "2024-01-14" },
+        { id: "ORD003", customerName: "Priya Singh", mobile: "9988776655", email: "priya@gmail.com", items: [{name: "Teddy Bear", qty: 1, price: 299}], total: 299, status: "shipped", date: "2024-01-13" }
+    ];
+
+    let customers = [
+        { name: "Purushotam Kumar", mobile: "9296768190", email: "purushotamkumar0896@gmail.com", orders: 1, joined: "2024-01-10" },
+        { name: "Rahul Sharma", mobile: "9876543210", email: "rahul@gmail.com", orders: 1, joined: "2024-01-11" },
+        { name: "Priya Singh", mobile: "9988776655", email: "priya@gmail.com", orders: 1, joined: "2024-01-12" }
+    ];
+
+    let bannerText = "🎉 Special Offers\nGet 20% off on all stationery and gift items today!";
+
+    let settings = {
+        storeName: "JAI MATA DI - Stationery & Gift and Sports",
+        contactNum1: "7870695618",
+        contactNum2: "9905735203",
+        whatsappNum1: "7870695618",
+        whatsappNum2: "9905735203"
+    };
+
+    // Load data from localStorage
+    function loadData() {
+        let savedProducts = localStorage.getItem('jmd_products');
+        if(savedProducts) products = JSON.parse(savedProducts);
+        
+        let savedOrders = localStorage.getItem('jmd_orders');
+        if(savedOrders) orders = JSON.parse(savedOrders);
+        
+        let savedCustomers = localStorage.getItem('jmd_customers');
+        if(savedCustomers) customers = JSON.parse(savedCustomers);
+        
+        let savedBanner = localStorage.getItem('jmd_banner');
+        if(savedBanner) bannerText = savedBanner;
+        
+        let savedSettings = localStorage.getItem('jmd_settings');
+        if(savedSettings) settings = JSON.parse(savedSettings);
+    }
+
+    function saveAllData() {
+        localStorage.setItem('jmd_products', JSON.stringify(products));
+        localStorage.setItem('jmd_orders', JSON.stringify(orders));
+        localStorage.setItem('jmd_customers', JSON.stringify(customers));
+        localStorage.setItem('jmd_banner', bannerText);
+        localStorage.setItem('jmd_settings', JSON.stringify(settings));
+        
+        // Also sync to main app
+        localStorage.setItem('jaimatadi_products', JSON.stringify(products));
+        localStorage.setItem('jaimatadi_orders', JSON.stringify(orders));
+        localStorage.setItem('jaimatadi_banner', bannerText);
+        localStorage.setItem('jaimatadi_settings', JSON.stringify(settings));
+    }
+
+    function showToast(msg) {
+        let toast = document.getElementById('toastMsg');
+        toast.innerText = msg;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 2000);
+    }
+
+    function showPage(page) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+        
+        if(page === 'dashboard') {
+            document.getElementById('dashboardPage').classList.add('active');
+            document.getElementById('pageTitle').innerText = 'Dashboard';
+            updateDashboard();
+        } else if(page === 'orders') {
+            document.getElementById('ordersPage').classList.add('active');
+            document.getElementById('pageTitle').innerText = 'Orders';
+            renderOrders();
+        } else if(page === 'products') {
+            document.getElementById('productsPage').classList.add('active');
+            document.getElementById('pageTitle').innerText = 'Products';
+            renderProducts();
+        } else if(page === 'customers') {
+            document.getElementById('customersPage').classList.add('active');
+            document.getElementById('pageTitle').innerText = 'Customers';
+            renderCustomers();
+        } else if(page === 'banners') {
+            document.getElementById('bannersPage').classList.add('active');
+            document.getElementById('pageTitle').innerText = 'Banners';
+            renderBanners();
+        } else if(page === 'settings') {
+            document.getElementById('settingsPage').classList.add('active');
+            document.getElementById('pageTitle').innerText = 'Settings';
+            loadSettings();
+        }
+        
+        event.target.closest('.nav-link').classList.add('active');
+    }
+
+    function updateDashboard() {
+        document.getElementById('totalOrders').innerText = orders.length;
+        document.getElementById('pendingOrders').innerText = orders.filter(o => o.status === 'pending').length;
+        document.getElementById('totalCustomers').innerText = customers.length;
+        document.getElementById('totalProducts').innerText = products.length;
+        
+        let recent = orders.slice(0, 5);
+        let html = '';
+        recent.forEach(order => {
+            html += `<tr>
+                <td>${order.id}</td>
+                <td>${order.customerName}</td>
+                <td>₹${order.total}</td>
+                <td><span class="status status-${order.status}">${order.status.toUpperCase()}</span></td>
+                <td><button class="btn btn-sm btn-primary" onclick="viewOrder('${order.id}')">View</button></td>
+            </tr>`;
+        });
+        document.getElementById('recentOrdersList').innerHTML = html;
+    }
+
+    function renderOrders() {
+        let html = '';
+        orders.forEach(order => {
+            let itemsText = order.items.map(i => `${i.name} x${i.qty}`).join(', ');
+            html += `<tr>
+                <td>${order.id}</td>
+                <td>${order.customerName}</td>
+                <t
